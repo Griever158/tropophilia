@@ -1,4 +1,4 @@
-![Kugane thumbnail](images/camp01.png)
+![Kugane thumbnail](https://github.com/Griever158/tropophilia/blob/main/images/camp01.png)
 
 Link to [Camp 01](viewers/Camp%2001.html)
 
