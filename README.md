@@ -1,4 +1,4 @@
-<img src="images/camp01.png" width=30%>
+![Kugane thumbnail](<images/camp01.png)
 
 Link to [Camp 01](viewers/Camp%2001.html)
 
