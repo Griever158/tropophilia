@@ -1,3 +1,5 @@
+<img src:"images/camp01.png" width=30%>
+
 Link to [Camp 01](viewers/Camp%2001.html)
 
 Link to [Crypt 01](viewers/Crypt%2001.html)
