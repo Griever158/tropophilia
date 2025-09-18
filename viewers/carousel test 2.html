@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sketchfab 3D model carousel (lazy-loading, auto-rotate)</title>
+  <style>
+    :root { --slide-w: 900px; --slide-h: 540px; --gap: 16px; --duration: 500ms; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; margin: 0; padding: 2rem; background: #0f172a; color: #e5e7eb; }
+    .carousel { max-width: var(--slide-w); margin-inline: auto; }
+
+    .viewport { position: relative; overflow: hidden; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.35); background: #111827; }
+
+    .track { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; gap: var(--gap); align-items: center; width: 100%; height: 100%; transition: transform var(--duration) ease; will-change: transform; padding: 0 var(--gap); }
+
+    .slide { width: 100%; height: var(--slide-h); display: grid; place-items: center; }
+    .slide > .frame-wrap { width: 100%; height: 100%; border-radius: 12px; overflow: hidden; background: #0b1020; border: 1px solid rgba(255,255,255,.08); }
+
+    .slide iframe { width: 100%; height: 100%; border: 0; background: #0b1020; }
+
+    /* Controls */
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-top: .75rem; }
+    .dots { display: flex; gap: .5rem; align-items: center; justify-content: center; flex: 1; }
+    .btn, .dot { cursor: pointer; }
+
+    .btn { background: #1f2937; color: #e5e7eb; border: 1px solid rgba(255,255,255,.08); padding: .5rem .75rem; border-radius: .75rem; font-weight: 600; }
+    .btn:hover { background: #374151; }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #475569; border: 0; display: inline-block; }
+    .dot[aria-current="true"] { background: #93c5fd; }
+
+    @media (max-width: 980px) {
+      :root { --slide-w: 100vw; --slide-h: min(62.5vw, 520px); }
+      body { padding: .75rem; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Sketchfab 3D model carousel</h1>
+  <p style="opacity:.8">Each slide lazy-loads a Sketchfab model (iframe). Auto-rotates, pauses on hover/tab hidden, supports arrows, dots, keys, swipe.</p>
+
+  <div class="carousel" id="carousel">
+    <div class="viewport" aria-roledescription="carousel">
+      <div class="track" id="track" style="--index:0">
+        <!-- Slide 1 -->
+        <div class="slide" data-index="0">
+          <div class="frame-wrap">
+            <iframe title="Sketchfab Model 1" loading="lazy" allow="autoplay; fullscreen; xr-spatial-tracking; camera; gyroscope; accelerometer"></iframe>
+          </div>
+        </div>
+        <!-- Slide 2 -->
+        <div class="slide" data-index="1">
+          <div class="frame-wrap">
+            <iframe title="Sketchfab Model 2" loading="lazy" allow="autoplay; fullscreen; xr-spatial-tracking; camera; gyroscope; accelerometer"></iframe>
+          </div>
+        </div>
+        <!-- Slide 3 -->
+        <div class="slide" data-index="2">
+          <div class="frame-wrap">
+            <iframe title="Sketchfab Model 3" loading="lazy" allow="autoplay; fullscreen; xr-spatial-tracking; camera; gyroscope; accelerometer"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="prev" aria-label="Previous slide">◀</button>
+      <div class="dots" id="dots" aria-label="Slide indicators"></div>
+      <button class="btn" id="next" aria-label="Next slide">▶</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // 🔧 Put your three Sketchfab model IDs here (the UID part of the model URL)
+      const MODEL_IDS = [
+        '89fd8dd8a2a2403aaa1e02b116e84b24',
+        '75b80ce750a34dd7acd508190a04c9fb',
+        'b94c4bc5306f423aa7196e9bcca99d7b'
+      ];
+
+      const root = document.getElementById('carousel');
+      const track = document.getElementById('track');
+      const slides = Array.from(track.querySelectorAll('.slide'));
+      const prevBtn = document.getElementById('prev');
+      const nextBtn = document.getElementById('next');
+      const dotsEl = document.getElementById('dots');
+
+      const AUTO_ROTATE_MS = 6000; // change to your preferred interval
+      const LAZY_PRELOAD_AHEAD = 1; // also eager-load the next N slides
+
+      let index = 0;
+      let timer = null;
+
+      // Assign IDs to iframes (one per slide)
+      slides.forEach((slide, i) => {
+        const iframe = slide.querySelector('iframe');
+        iframe.dataset.modelId = MODEL_IDS[i % MODEL_IDS.length] || '';
+      });
+
+      // Build dots
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'dot';
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Go to slide ${i+1}`);
+        dot.addEventListener('click', () => goTo(i));
+        dotsEl.appendChild(dot);
+      });
+
+      function updateUI(){
+        track.style.transform = `translateX(calc((-100% - var(--gap)) * ${index}))`;
+        Array.from(dotsEl.children).forEach((d, i)=> d.setAttribute('aria-current', String(i===index)));
+      }
+
+      function sketchfabUrl(modelId){
+        const base = `https://sketchfab.com/models/${modelId}/embed`;
+        const params = new URLSearchParams({
+          autostart: '0',     // start rendering as soon as possible
+          preload: '1',       // let Sketchfab preload assets once iframe is created
+          // You can add more: annotations_visible, ui_stop, transparent, etc.
+          autospin: .005,
+          annotation_tooltip_visible: 0,
+          annotations_visible: 0,
+          autostart: 1,
+          camera: 0
+        });
+        return `${base}?${params.toString()}`;
+      }
+
+      function lazyLoad(idx){
+        const s = slides[idx];
+        if(!s) return;
+        const iframe = s.querySelector('iframe');
+        if(!iframe) return;
+        if(!iframe.src){
+          const id = iframe.dataset.modelId;
+          if(id){ iframe.src = sketchfabUrl(id); }
+        }
+      }
+
+      function preloadAround(idx){
+        for(let i = -LAZY_PRELOAD_AHEAD; i <= LAZY_PRELOAD_AHEAD; i++){
+          lazyLoad(idx + i);
+        }
+      }
+
+      function goTo(i){
+        index = (i + slides.length) % slides.length;
+        preloadAround(index);
+        updateUI();
+        restartAutoRotate();
+      }
+
+      function next(){ goTo(index + 1); }
+      function prev(){ goTo(index - 1); }
+
+      prevBtn.addEventListener('click', prev);
+      nextBtn.addEventListener('click', next);
+
+      // Keyboard navigation
+      root.addEventListener('keydown', (e)=>{
+        if(e.key === 'ArrowRight') next();
+        else if(e.key === 'ArrowLeft') prev();
+      });
+      root.tabIndex = 0; // make focusable
+
+      // Basic swipe support
+      let startX = null;
+      track.addEventListener('pointerdown', e=>{ startX = e.clientX; track.setPointerCapture(e.pointerId); });
+      track.addEventListener('pointerup', e=>{
+        if(startX === null) return;
+        const dx = e.clientX - startX;
+        if(Math.abs(dx) > 40){ dx < 0 ? next() : prev(); }
+        startX = null;
+      });
+
+      // Auto-rotate with pause on hover & page visibility
+      function startAutoRotate(){
+        stopAutoRotate();
+        timer = setInterval(next, AUTO_ROTATE_MS);
+      }
+      function stopAutoRotate(){ if(timer){ clearInterval(timer); timer = null; } }
+      function restartAutoRotate(){ stopAutoRotate(); startAutoRotate(); }
+
+      root.addEventListener('mouseenter', stopAutoRotate);
+      root.addEventListener('mouseleave', startAutoRotate);
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.hidden) stopAutoRotate(); else startAutoRotate();
+      });
+
+      // IntersectionObserver to lazy-load first visible slide
+      const io = new IntersectionObserver((entries)=>{
+        for(const entry of entries){
+          if(entry.isIntersecting){
+            const idx = Number(entry.target.dataset.index);
+            preloadAround(idx);
+          }
+        }
+      }, { root: document.querySelector('.viewport'), threshold: 0.6 });
+      slides.forEach(s => io.observe(s));
+
+      // Init
+      lazyLoad(0); // ensure first slide loads
+      updateUI();
+      startAutoRotate();
+
+      // OPTIONAL: listen for Sketchfab postMessage events (e.g., viewer ready) per slide
+      // window.addEventListener('message', (e) => {
+      //   if(typeof e.data !== 'object') return;
+      //   // Example: if(e.data.type === 'viewerready') { /* do something */ }
+      // });
+    })();
+  </script>
+</body>
+</html>

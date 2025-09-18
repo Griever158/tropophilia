@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <style>
+        .centered-iframe {
+    display: block;
+    margin: 0 auto;
+    width: 90%; /* Set a specific width less than 100% for centering to be visible */
+    height: 800px;
+    border: none;
+    }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tropophilia</title>
+
+    <!-- Insert this script -->
+    <script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
+</head>
+
+<body style="background-color: black;">
+    <!-- Insert an empty iframe with attributes -->
+    <iframe class="centered-iframe" src="" id="api-frame" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" width="640" height="480"></iframe>
+
+    <!-- Initialize the viewer -->
+    <script type="text/javascript">
+    var iframe = document.getElementById( 'api-frame' );
+    var uid = 'e8d24a2a1037438fb94c841731f12b47';
+
+    // By default, the latest version of the viewer API will be used.
+    var client = new Sketchfab( iframe );
+
+    // Alternatively, you can request a specific version.
+    // var client = new Sketchfab( '1.12.1', iframe );
+
+    client.init( uid, {
+        success: function onSuccess( api ){
+            api.start();
+            api.addEventListener( 'viewerready', function() {
+
+                // API is ready to use
+                // Insert your code here
+                console.log( 'Viewer is ready' );
+
+            } );
+        },
+        autospin: .0075,
+        annotation_tooltip_visible: 0,
+        annotations_visible: 0,
+        autostart: 1,
+        camera: 0,
+        error: function onError() {
+            console.log( 'Viewer error' );
+        }
+    } );
+    
+    </script>
+</body>
+</html>
