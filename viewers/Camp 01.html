@@ -1,28 +1,10 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <style>
-    .centered-iframe {
-        display: block;
-        margin: 0 auto;
-        width: 90%; /* Set a specific width less than 100% for centering to be visible */
-        height: 800px;
-        border: none;
-    }
-    .parent {
-        display: flex;
-        justify-content: center;
-        margin-top: 16px;       
-    }
-    .return {
-        color: white;
-        font-family: "Helvetica Neue", Arial, sans-serif;
-        font-weight: bold;
-    }
-    </style>
+    <link rel="stylesheet" href="styles.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sketchfab Viewer API example</title>
+    <title>Tropophilia</title>
 
     <!-- Insert this script -->
     <script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
@@ -33,6 +15,7 @@
         <!-- Insert an empty iframe with attributes -->
         <iframe class="centered-iframe" src="" id="api-frame" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" width="640" height="480"></iframe>
     </div>
+
     <!-- Initialize the viewer -->
     <script type="text/javascript">
     var iframe = document.getElementById( 'api-frame' );
@@ -66,8 +49,10 @@
     } );
     
     </script>
+
     <div class="parent">
         <a class="return" href="../frontpage.html" aria-label="Home">BACK</a>
     </div>
+    
 </body>
 </html>

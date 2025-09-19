@@ -1,0 +1,21 @@
+.centered-iframe {
+    display: block;
+    margin: 0 auto;
+    width: 90%; /* Set a specific width less than 100% for centering to be visible */
+    height: 800px;
+    border: none;
+}
+.parent {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;       
+}
+    .return {
+    color: white;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: bold;
+}
+
+.iframe-wrapper {
+    margin-top: 16px;
+}
