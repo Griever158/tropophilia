@@ -1,3 +1,4 @@
+Link to [Front Page](frontpage.html) </br>
 Link to [Camp 01](viewers/Camp%2001.html) </br>
 Link to [Crypt 01](viewers/Crypt%2001.html) </br>
 Link to [Inn Room 01](viewers/Inn%20Room%2001.html) </br>
